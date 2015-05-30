@@ -8,7 +8,7 @@ def find_proxies(http_type):
     html = urllib2.urlopen(url).read()
     boxes = re.findall('<tr class=".*?">.*?</tr>', html, re.DOTALL)
     # 存放所有的代理
-    all_proxies = {}
+    all_proxies = []
     for box in boxes:
         exp = r'<td>(.*?)</td>'
         items = re.findall(exp, box, re.DOTALL)
@@ -25,7 +25,7 @@ def find_proxies(http_type):
         proxy['delay'] = items[8]
         proxy['date'] = items[9]
         if proxy['type'].equals(http_type.upper()):
-            all_proxies[proxy['ip']] = proxy
+            all_proxies.append(proxy['ip'] + ':' + proxy['port'])
 
     print (u"获取完成,获取了%d个代理" % len(all_proxies))
     return all_proxies
