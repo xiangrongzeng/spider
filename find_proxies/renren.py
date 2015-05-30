@@ -45,8 +45,8 @@ class  Renren(object):
         friendlist_pages.append(friendlist_frist_page)
         # 逐页获取好友列表
         for num in range(1, total_number):
-            url='http://3g.renren.com/friendlist.do' + '?curpage=' + str(num)
-            print url
+            url=origin_url + '&curpage=' + str(num)
+#            print url
             postdata = {
                 'email':self.email,
                 'password':self.password,
@@ -54,7 +54,7 @@ class  Renren(object):
             req = urllib2.Request(url,urllib.urlencode(postdata))
             friendlist_page = urllib2.urlopen(req).read().decode(self.ENCODING,'ignore')
             friendlist_pages.append(friendlist_page)
-        print len(friendlist_pages)
+#        print len(friendlist_pages)
 #        except:
 #            print ur'好友设的隐私权限，无法访问其好友'
         return friendlist_pages
@@ -84,10 +84,10 @@ class  Renren(object):
                 friend['uname'] = friend_name
                 friend['uclass'] = friend_class
                 friends.append(friend)
-                print u'第 %d 页的第 %d 个好友' % (page_number,table_number)
-                print u'\tid:',friend_id.encode('gbk','ignore')
-                print u'\tname:',friend_name.encode('gbk','ignore')
-                print u'\tclass:',friend_class.encode('gbk','ignore')
+#                print u'第 %d 页的第 %d 个好友' % (page_number,table_number)
+#                print u'\tid:',friend_id.encode('gbk','ignore')
+                print friend_name.encode('gbk','ignore'),
+#                print u'\tclass:',friend_class.encode('gbk','ignore')
                 table_number += 1
             page_number += 1
         return friends
@@ -100,12 +100,12 @@ if __name__ == "__main__":
 #    print "%s %s" % (sys.argv[1], sys.argv[2])
     a=Renren('954229335@qq.com','zxrgs!b&renren')
     # 获取自己额好友列表
-    origin_url = 'http://3g.renren.com/friendlist.do'
+    origin_url = 'http://3g.renren.com/friendlist.do?'
     my_friendlist_pages = a.get_friendlist_pages(origin_url)
     my_friendlist = a.get_friendlist(my_friendlist_pages)
     # 获取好友的好友列表
     for my_friend in my_friendlist:
-        url = 'http://3g.renren.com/getfriendlist.do?f=same&id=' + my_friend['uid']
+        url = 'http://3g.renren.com/getfriendlist.do?f=all&id=' + my_friend['uid']
         print url
         friend_friendlist_pages = a.get_friendlist_pages(url)
         friend_friendlist = a.get_friendlist(friend_friendlist_pages)
