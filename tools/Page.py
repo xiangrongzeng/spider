@@ -9,7 +9,6 @@ from requests.auth import HTTPBasicAuth
 import logging
 logging.basicConfig(filename ='page.log', filemode='w', level=logging.DEBUG)
 import random
-import proxy
 
 """
 author: sunder
@@ -54,29 +53,33 @@ class Page():
     """
         用代理获取不需要登录的网页,一个代理失效时，自动切换另一个代理
     """
-    def proxy_fetch(self):
-        # 获取代理
-        proxieslist = proxy.get()
+    def proxy_fetch(self, proxieslist):
         # 用proxy获取网页
+        logging.debug(u'开始获取网页')
         headers = {'Content-type': 'application/x-www-form-urlencoded',
                     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/21.0.1180.89 Safari/537.1'}
         looptimes = 0
-        while looptimes < 3 or looptimes < len(proxieslist):
+        while looptimes < 3:
+            if len(proxieslist) < 1:
+                if_renew_proxy = raw_input(u'所有代理已失效，是否更新代理(Y/N)--> ')
+                if if_renew_proxy != 'N' and if_renew_proxy != 'n':
+                    proxieslist = proxy.renew()
             try:
-                randnum = random.randint(0, len(proxieslist))
+                randnum = random.randint(0, len(proxieslist)-1)
                 proxyinfo = proxieslist[randnum].split('=')
                 proxy = {proxyinfo[0]: proxyinfo[1]}
                 logging.debug('\t%d-loops, proxy is: %s=%s ' % (looptimes+1, proxyinfo[0], proxyinfo[1]))
                 r = requests.get(self.url, headers=headers, proxies=proxy, timeout=3)
-                print r.status_code
                 logging.debug('\tget page succeed')
+                print u'获取%s成功' % self.url
                 encode = r.encoding
                 return r.text.encode(encode, 'ignore')
             except Exception as e:
                 looptimes += 1
-                logging.debug(looptimes)
+                logging.debug('proxieslist status: %d:%d' % (randnum, len(proxieslist)))
                 logging.debug(e)
+                del proxieslist[randnum]
         print u'无法获取%s' % self.url
         return False
 
@@ -95,28 +98,27 @@ def test_fetch():
     url = 'http://requests-docs-cn.readthedocs.org/zh_CN/latest/'
 #    url = 'http://baike.baidu.com/view/22064.htm'
     page = Page(url)
-    logging.debug(u'获取网页中')
     logging.debug(page.fetch().encode('gbk', 'ignore'))
-    logging.debug(u'获取结束')
 
 def test_proxy_fetch():
+    # 获取代理
+    import proxy
+    logging.info(u'获取代理')
+    proxieslist = proxy.get()
     looptimes = 100
     while looptimes > 0:
         id = looptimes + 22000
         id = str(id)
         url = 'http://baike.baidu.com/view/' + id + '.htm'
         page = Page(url)
-        logging.debug(u'获取网页中')
-        html = page.proxy_fetch()
+        html = page.proxy_fetch(proxieslist)
         if html:
             outfile = 'g:/test_ground/tmp/' + id + '.html'
             f = open(outfile,'w')
             f.write(html)
             f.close()
         else:
-            print 'need new proxies'
             looptimes = 0
-        logging.debug(u'获取结束')
         looptimes -= 1
 
 if __name__ == '__main__':
