@@ -41,11 +41,11 @@ def renew():
                 proxy['delay'] = items[8]
                 proxy['date'] = items[9]
                 proxieslist.append(proxy['type']+'='+proxy['ip']+':'+proxy['port'])
-                of.write('%s=%s:%s' % (proxy['type'], proxy['ip'], proxy['port']))
+                of.write('%s=%s:%s\n' % (proxy['type'], proxy['ip'], proxy['port']))
         except Exception as e:
             logging.info(e)
         finally:
-            logging.info(u"获取了%d个代理" % len(all_proxies))
+            logging.info(u"获取了%d个代理" % len(proxieslist))
             of.close()
             return proxieslist
 
@@ -56,14 +56,15 @@ def get():
     # 读入proxy
     proxieslist = []
     try:
-        logging.debug('open proxy.txt')
-        f = open('proxy.txt', 'r')
+        logging.debug('open proxies.dat')
+        f = open('proxies.dat', 'r')
         for line in f:
             proxieslist.append(line.strip())
         f.close()
-        logging.debug('close proxy.txt')
+        logging.debug('close proxies.dat')
         return proxieslist
     except IOError as e:
-        print u'无法打开proxy.txt文件'
+        logging.debug('open proxies.dat failed')
+        renew()
 if __name__ == "__main__":
     get()
